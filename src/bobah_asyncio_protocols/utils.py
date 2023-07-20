@@ -1,3 +1,6 @@
+import asyncio
+import socket
+
 import aiodns
 
 
@@ -7,8 +10,8 @@ class aclassmethod(object):
         self.__method = method
 
     def __get__(self, instance, cls):
-        async def wrapper(func, cls, *args, **kwargs):
-            return await func(cls, *args, **kwargs)
+        async def wrapper(*args, **kwargs):
+            return await self.__method(cls, *args, **kwargs)
         return wrapper
 
 
@@ -23,6 +26,7 @@ async def get_ip_by_hostname(hostname):
 
 
 def ip_to_bytes(ip):
-    for n in host.split("."):
-        b += int(n).to_bytes(1, "big")
-    return b
+    bytes_ip = b""
+    for n in ip.split("."):
+        bytes_ip += int(n).to_bytes(1, "big")
+    return bytes_ip
