@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import async_timeout
 
 from . import aclassmethod, ip_to_bytes, get_ip_by_hostname
 
@@ -46,7 +47,7 @@ class BaseProxyProtocol(asyncio.protocols.Protocol):
             protocol_factory = lambda: cls(username, password)
         else:
             protocol_factory = cls
-        async with asyncio.timeout(timeout):
+        async with async_timeout.timeout(timeout):
             _, protocol = await ioloop.create_connection(protocol_factory, host, port)
             return protocol
     
@@ -64,7 +65,7 @@ class HttpProxyConnectionProtocol(BaseProxyProtocol):
     
     async def connect(self, host, port, timeout=10):
         try:
-            async with asyncio.timeout(timeout):
+            async with async_timeout.timeout(timeout):
                 host, port = host.encode(), str(port).encode()
                 conn_str = b"CONNECT " + host + b":" + port + b" HTTP/1.1\r\nHost: " + host + b"\r\n\r\n"
                 self._transport.write(conn_str)
@@ -86,7 +87,7 @@ class Socks4ProxyConnectionProtocol(BaseProxyProtocol):
     
     async def connect(self, host, port, timeout=10):
         try:
-            async with asyncio.timeout(timeout):
+            async with async_timeout.timeout(timeout):
                 ip = await get_ip_by_hostname(host)
                 ip_bytes = ip_to_bytes(ip)
                 port = port.to_bytes(2, 'big')
@@ -120,7 +121,7 @@ class Socks5ProxyConnectionProtocol(BaseProxyProtocol):
     
     async def connect(self, host, port, timeout=10):
         try:
-            async with asyncio.timeout(timeout):
+            async with async_timeout.timeout(timeout):
                 ip = await get_ip_by_hostname(host)
                 self._ip = ip_to_bytes(ip)
                 self._port = port.to_bytes(2, 'big')
